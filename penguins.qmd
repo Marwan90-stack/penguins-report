@@ -1,0 +1,479 @@
+---
+title: "Analisis Penguins menggunakan quarto dan typst!"
+fig-format: svg
+fig-dpi: 300
+crossref: 
+    fig-title: "Gambar"
+    tbl-title: "Tabel"
+format: 
+    typst: 
+        page-numbering: "1/1"
+        papersize: "a4"
+        tbl-cap-location: top
+        mainfont: "Open Sans"
+        toc: false
+        toc-depth: 2
+        toc-title: Daftar Isi
+        section-numbering: 1.1.a
+        
+        # columns: 2
+        margin: 
+            x: 2cm
+            y: 1.5cm
+        syntax-highlighting: github
+        
+---
+
+
+
+```{r}
+#| label: setup
+#| echo: false
+#| warning: false
+#| output: false
+
+library(tidyverse)
+library(gt)
+knitr::opts_chunk$set(
+    dpi = 300
+)
+data(penguins)
+
+```
+
+```{=typst}
+
+#show figure: it => {
+  set text(size: 9pt, fill: rgb("#0d85f6"))  // 👈 change size here
+  it
+}
+#show heading: set text(fill: rgb("#100384"), weight: "bold", size: 11pt)
+
+#set text(size: 10pt, hyphenate: false)
+
+#show figure.caption: it => {
+    align(left+top)[#it]
+}
+    #show "Adelie": set text(fill: rgb("#f68f20"))
+    #show "Chinstrap": set text(fill: rgb("#f68f20"))
+    #show "Gentoo": set text(fill: rgb("#f68f20"))
+
+    #show "Biscoe": set text(fill: rgb("#206bf6"))
+    #show "Dream": set text(fill: rgb("#206bf6"))
+    #show "Torgersen": set text(fill: rgb("#206bf6"))
+// #show document.title: set text(fill: rgb("#100384"), weight: "bold")
+// #set page(
+//     footer: [#title]
+// )
+
+```
+
+# Tabel Penguins
+
+```{=typst}
+#block[
+
+
+    Penguins dataset diperoleh dari pengamatan 3 jenis species penguins, yaitu `Adelie`, `Chinstrap`, dan `Gentoo`. Pengamatan dilakukan pada 3 pulau berbeda di daerah kutub selatan, yaitu di pulau Biscoe, Dream, dan Torgersen selama periode 2007 - 2009. Ukuran beberapa dimensi yang diamati disajikan pada @tbl-penguins:
+]
+
+```
+
+```{r}
+#| echo: false
+#| label: tbl-penguins
+#| tbl-cap: "Dimensi ukuran species penguins di 3 pulau amatan"
+
+my_font = "Lato"
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(species, island, sex) %>% 
+    summarise_if(
+        is.numeric,
+        .funs = mean, 
+        na.rm = TRUE
+    ) %>% 
+    select(-year) %>% 
+    gt() %>% 
+    cols_label(
+        species ~ "Species",
+        island ~ "Island",
+        bill_len ~ "Bill Length",
+        bill_dep ~ "Bill Deth",
+        flipper_len ~ 'Flipper Length',
+        body_mass ~ 'Body Mass',
+        sex ~ "Sex"
+    ) %>% 
+        # cols_hide(year) %>% 
+        cols_align(
+            align = "left",
+            columns = c(is.character, is.factor)
+        ) %>% 
+        cols_align(
+                align = "right",
+                columns = is.numeric
+        ) %>% 
+        fmt_number(
+                    columns = is.numeric,
+                    decimals = 2,
+                    dec_mark = ",",
+                    sep_mark ="."
+        ) %>% 
+        sub_missing(missing_text = "---") %>% 
+        cols_width(
+            everything() ~ pct(100 / 5) #ncol(penguins %>% select(-year))
+        ) %>% 
+        data_color(
+            columns = is.numeric,
+            palette = c("#0686f0", "#28abdf", "#c3c1c1"),
+            na_color = "#fafafa"
+        ) %>% 
+        cols_move(
+            columns = sex,
+            after = island
+        ) %>% 
+        tab_style(
+            style = cell_borders(sides = c("bottom", "top"), weight = px(1.5), color = "#818181"),
+            locations = cells_column_labels()
+        ) %>% 
+        tab_style(
+            style = cell_borders(sides = "top", weight = px(1.5), color = "#818181"),
+            locations = cells_body(rows = 1)
+        ) %>% 
+        tab_style(
+            style = cell_text(weight = "bold", align = "left", v_align = "middle"),
+            locations = cells_column_labels(columns = everything())
+        ) %>% 
+        tab_style(
+            style = cell_borders(sides = "bottom", color = "#ababab", weight = px(0.25)),
+            locations = cells_body()
+        ) %>% 
+        tab_style(
+            style = cell_borders(sides = "top", weight = "0pt"),
+            locations = cells_body()
+        ) %>% 
+        tab_style(
+            style = cell_borders(sides = "bottom", color = "#ababab", weight = px(0.25)),
+            locations = cells_row_groups()
+        ) %>% 
+        tab_style(
+            style = cell_borders(sides = "top", color = "#ababab", weight = px(0)),
+            locations = cells_row_groups()
+        ) %>% 
+        tab_options(
+            table.font.names = my_font,
+            table.font.size = "10pt"
+        ) %>% 
+        tab_footnote(
+            footnote = "Ukuran dalam milimeter (mm)",
+            locations = cells_column_labels(
+                columns = c(bill_dep, bill_len, flipper_len)
+            )
+        ) %>% 
+        tab_footnote(
+            footnote = "Ukuran dalam gram (g)",
+            locations = cells_column_labels(
+                columns = body_mass
+            )
+        )
+                
+                    
+```
+
+
+
+# Massa Tubuh
+
+
+```{=typst}
+Berikut adalah grafik perbandingan rata - rata masa tubuh jantan dan betina pada masing - masing pulau yg disajikan pada @fig-massa.
+#grid(
+    columns: (1fr, 1fr),
+    column-gutter: 10pt,
+    [
+
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 3
+#| label: fig-massa
+#| fig-cap: Rata - rata masa tubuh penguins di 3 pulau amatan.
+#| fig-align: left
+
+
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(sex, island) %>% 
+    summarise(m_body_mass = mean(body_mass, na.rm = TRUE), .groups = "drop") %>% 
+    ggplot(aes(x = sex, y = m_body_mass, fill = island)) +
+    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
+    geom_text(aes(label = round(m_body_mass/1000, 2)), 
+    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
+    theme_minimal() +
+    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format(scale = 1/1000, suffix = "")) +
+    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
+    labs(
+        x = "",
+        y = "Mean Body Mass (kg)",
+        fill = ""
+    ) +
+    theme(
+        legend.position = 'top',
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.key.size = unit(10, "pt"),
+        legend.key.justification = "left",
+        legend.justification = "left"
+    )
+```
+
+
+```{=typst}
+],
+align(left+horizon, )[
+
+    Penguins jantan umumnya memiliki masa tubuh yang lebih besar dibandingkan betina. Pengamatan di pulau `Biscoe` menunjukkan rata - rata masa tubuh penguin jantan 5,1 kg, sedangkan masa tubuh betina 4,32 kg. Baik jantan maupun betina di pulau ini memiliki ukuran tubuh lebih besar dibandingkan species penguin yang hidup di pulau `Dream` dan `Torgersen`.
+]
+)
+
+```
+
+```{=typst}
+#grid(
+    columns: (1fr, 1fr),
+    column-gutter: 10pt,
+    [
+
+        Species penguins `Gentoo` memiliki massa tubuh yang lebih besar dibandingkan `Adelie` dan `Chinstrap`. Species ini juga hanya ditemukan di pulau `Biscoe`. Sementara itu, species `Adelie` dan `Chinstrap` memiliki massa tubuh yang relatif sama. Sama halnya dengan species `Gentoo` yang hanya ditemukan di pulau `Biscoe`, `Chinstrap` juga hanya ditemukan di pulau `Dream`. Sedangkan species `Adelie` ditemukan pada masing - masing pulau.
+    ],
+    [
+
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 3
+#| label: fig-species
+#| fig-cap: Rata - rata masa tubuh menurut species penguins di 3 pulau amatan.
+#| fig-align: left
+
+
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(species, island) %>% 
+    summarise(m_body_mass = mean(body_mass, na.rm = TRUE), .groups = "drop") %>% 
+    ggplot(aes(x = species, y = m_body_mass, fill = island)) +
+    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
+    geom_text(aes(label = round(m_body_mass/1000, 2)), 
+    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
+    theme_minimal() +
+    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format(scale = 1/1000, suffix = "")) +
+    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
+    labs(
+        x = "",
+        y = "Mean Body Mass (kg)",
+        fill = ""
+    ) +
+    theme(
+        legend.position = 'top',
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.key.size = unit(10, "pt"),
+        legend.key.justification = "left",
+        legend.justification = "left"
+    )
+
+```
+
+
+```{=typst}
+    ]
+)
+
+```
+
+# Ukuran Paruh
+
+```{=typst}
+
+Berikut disajikan perbandingan panjang dan kedalaman paruh pada masing - masing species penguins di 3 pulau amatan.
+
+#grid(
+    columns: (1fr, 1fr),
+    column-gutter: 5pt,
+    [
+
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 3
+#| label: fig-bill
+#| fig-cap: Rata - rata panjang paruh menurut species penguins di 3 pulau amatan.
+#| fig-align: left
+
+
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(species, island) %>% 
+    summarise(m_bill_len = mean(bill_len, na.rm = TRUE), .groups = "drop") %>% 
+    ggplot(aes(x = species, y = m_bill_len, fill = island)) +
+    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
+    geom_text(aes(label = round(m_bill_len, 2)), 
+    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
+    theme_minimal() +
+    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format()) +
+    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
+    labs(
+        x = "",
+        y = "Mean Bill Length (mm)",
+        fill = ""
+    ) +
+    theme(
+        legend.position = 'top',
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.key.size = unit(10, "pt"),
+        legend.key.justification = "left",
+        legend.justification = "left"
+    )
+
+```
+
+
+```{=typst}
+    ],
+    [
+
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 3
+#| label: fig-bill-depth
+#| fig-cap: Rata - rata kedalaman paruh menurut species penguins di 3 pulau amatan.
+#| fig-align: left
+
+
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(species, island) %>% 
+    summarise(m_bill_dep = mean(bill_dep, na.rm = TRUE), .groups = "drop") %>% 
+    ggplot(aes(x = species, y = m_bill_dep, fill = island)) +
+    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
+    geom_text(aes(label = round(m_bill_dep, 2)), 
+    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
+    theme_minimal() +
+    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format()) +
+    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
+    labs(
+        x = "",
+        y = "Mean Bill Depth (mm)",
+        fill = ""
+    ) +
+    theme(
+        legend.position = 'top',
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.key.size = unit(10, "pt"),
+        legend.key.justification = "left",
+        legend.justification = "left"
+    )
+
+```
+
+```{=typst}
+    ]
+)
+
+#block[
+
+
+Meskipun memiliki bobot tubuh yang relatif lebih kecil, species `Chinstrap` memiliki ukuran dimensi paruh yang lebih besar dibandingkan 2 species lainnya. Panjang paruh species ini rata - rata berukuran 48,83 mm dengan kedalaman 18,42mm. Dari sisi panjang paruh, species `Gentoo` mendekati ukuran species `Chinstrap`, namun dari sisi kedalaman `Gentoo` justru yang sangat kecil sedangkan species `Adelie` mendekati ukuran paruh `Chinstrap`.
+]
+```
+
+# Ukuran Sayap
+
+
+```{=typst}
+#grid(
+    columns: (1fr, 1fr),
+    column-gutter: 10pt,
+    [
+
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 3
+#| label: fig-flipper
+#| fig-cap: Rata - rata ukuran sayap menurut species penguins di 3 pulau amatan.
+#| fig-align: left
+
+
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(species, island) %>% 
+    summarise(m_flipper_len = mean(flipper_len, na.rm = TRUE), .groups = "drop") %>% 
+    ggplot(aes(x = species, y = m_flipper_len, fill = island)) +
+    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
+    geom_text(aes(label = round(m_flipper_len, 2)), 
+    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
+    theme_minimal() +
+    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format()) +
+    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
+    labs(
+        x = "",
+        y = "Fliper Length (mm)",
+        fill = ""
+    ) +
+    theme(
+        legend.position = 'top',
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.key.size = unit(10, "pt"),
+        legend.key.justification = "left",
+        legend.justification = "left"
+    )
+
+```
+
+
+```{=typst}
+],
+
+align(left+horizon)[
+
+    Sama halnya dengan ukuran massa tubuh, species `Gentoo` secara umum memiliki ukuran sayap yang lebih panjang dibandingkan 2 species lainnya. Rata - rata ukuran panjang sayap species ini sebesar 217,24 mm. Sedangkan 2 species lainnya tidak menunjukkan perbedaan yang berarti dalam hal ukuran sayap.
+]
+)
+```
+
+# Kesimpulan
+
+Secara umum, penguin jantan memiliki ukuran dimensi tubuh yang lebih besar dibandingkan betina. Selain itu, species `Gentoo` adalah species terbesar dan hanya ditemukan di pulau `Biscoe`. Spesies `Chinstrap` memiliki ukuran yang relatif sedang dan hanya ditemukan di pulau `Dream`. Sedangkan `Adelie` merupakan species terkecil dan ditemukan di ke 3 pulau amatan.

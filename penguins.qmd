@@ -72,8 +72,6 @@ data(penguins)
 
 ```{=typst}
 #block[
-
-
     Penguins dataset diperoleh dari pengamatan 3 jenis species penguins, yaitu `Adelie`, `Chinstrap`, dan `Gentoo`. Pengamatan dilakukan pada 3 pulau berbeda di daerah kutub selatan, yaitu di pulau Biscoe, Dream, dan Torgersen selama periode 2007 - 2009. Ukuran beberapa dimensi yang diamati disajikan pada @tbl-penguins:
 ]
 
@@ -84,7 +82,7 @@ data(penguins)
 #| label: tbl-penguins
 #| tbl-cap: "Dimensi ukuran species penguins di 3 pulau amatan"
 
-my_font = "Lato"
+my_font = "Open Sans"
 penguins %>% 
     filter(!is.na(sex)) %>% 
     group_by(species, island, sex) %>% 
@@ -180,8 +178,6 @@ penguins %>%
                     
 ```
 
-
-
 # Massa Tubuh
 
 
@@ -191,8 +187,6 @@ Berikut adalah grafik perbandingan rata - rata masa tubuh jantan dan betina pada
     columns: (1fr, 1fr),
     column-gutter: 10pt,
     [
-
-
 ```
 
 
@@ -204,7 +198,6 @@ Berikut adalah grafik perbandingan rata - rata masa tubuh jantan dan betina pada
 #| label: fig-massa
 #| fig-cap: Rata - rata masa tubuh penguins di 3 pulau amatan.
 #| fig-align: left
-
 
 penguins %>% 
     filter(!is.na(sex)) %>% 
@@ -229,7 +222,9 @@ penguins %>%
         panel.grid.minor.y = element_blank(),
         legend.key.size = unit(10, "pt"),
         legend.key.justification = "left",
-        legend.justification = "left"
+        legend.justification = "left",
+        text = element_text(family = my_font)
+        
     )
 ```
 
@@ -249,12 +244,9 @@ align(left+horizon, )[
     columns: (1fr, 1fr),
     column-gutter: 10pt,
     [
-
         Species penguins `Gentoo` memiliki massa tubuh yang lebih besar dibandingkan `Adelie` dan `Chinstrap`. Species ini juga hanya ditemukan di pulau `Biscoe`. Sementara itu, species `Adelie` dan `Chinstrap` memiliki massa tubuh yang relatif sama. Sama halnya dengan species `Gentoo` yang hanya ditemukan di pulau `Biscoe`, `Chinstrap` juga hanya ditemukan di pulau `Dream`. Sedangkan species `Adelie` ditemukan pada masing - masing pulau.
     ],
     [
-
-
 ```
 
 
@@ -266,7 +258,6 @@ align(left+horizon, )[
 #| label: fig-species
 #| fig-cap: Rata - rata masa tubuh menurut species penguins di 3 pulau amatan.
 #| fig-align: left
-
 
 penguins %>% 
     filter(!is.na(sex)) %>% 
@@ -291,7 +282,8 @@ penguins %>%
         panel.grid.minor.y = element_blank(),
         legend.key.size = unit(10, "pt"),
         legend.key.justification = "left",
-        legend.justification = "left"
+        legend.justification = "left",
+        text = element_text(family = my_font)
     )
 
 ```
@@ -300,7 +292,6 @@ penguins %>%
 ```{=typst}
     ]
 )
-
 ```
 
 # Ukuran Paruh
@@ -313,8 +304,6 @@ Berikut disajikan perbandingan panjang dan kedalaman paruh pada masing - masing 
     columns: (1fr, 1fr),
     column-gutter: 5pt,
     [
-
-
 ```
 
 
@@ -351,9 +340,9 @@ penguins %>%
         panel.grid.minor.y = element_blank(),
         legend.key.size = unit(10, "pt"),
         legend.key.justification = "left",
-        legend.justification = "left"
+        legend.justification = "left",
+        text = element_text(family = my_font)
     )
-
 ```
 
 
@@ -372,7 +361,6 @@ penguins %>%
 #| label: fig-bill-depth
 #| fig-cap: Rata - rata kedalaman paruh menurut species penguins di 3 pulau amatan.
 #| fig-align: left
-
 
 penguins %>% 
     filter(!is.na(sex)) %>% 
@@ -397,7 +385,8 @@ penguins %>%
         panel.grid.minor.y = element_blank(),
         legend.key.size = unit(10, "pt"),
         legend.key.justification = "left",
-        legend.justification = "left"
+        legend.justification = "left",
+        text = element_text(family = my_font)
     )
 
 ```
@@ -407,8 +396,6 @@ penguins %>%
 )
 
 #block[
-
-
 Meskipun memiliki bobot tubuh yang relatif lebih kecil, species `Chinstrap` memiliki ukuran dimensi paruh yang lebih besar dibandingkan 2 species lainnya. Panjang paruh species ini rata - rata berukuran 48,83 mm dengan kedalaman 18,42mm. Dari sisi panjang paruh, species `Gentoo` mendekati ukuran species `Chinstrap`, namun dari sisi kedalaman `Gentoo` justru yang sangat kecil sedangkan species `Adelie` mendekati ukuran paruh `Chinstrap`.
 ]
 ```
@@ -434,7 +421,6 @@ Meskipun memiliki bobot tubuh yang relatif lebih kecil, species `Chinstrap` memi
 #| fig-cap: Rata - rata ukuran sayap menurut species penguins di 3 pulau amatan.
 #| fig-align: left
 
-
 penguins %>% 
     filter(!is.na(sex)) %>% 
     group_by(species, island) %>% 
@@ -458,9 +444,9 @@ penguins %>%
         panel.grid.minor.y = element_blank(),
         legend.key.size = unit(10, "pt"),
         legend.key.justification = "left",
-        legend.justification = "left"
+        legend.justification = "left",
+        text = element_text(family = my_font)
     )
-
 ```
 
 
@@ -468,7 +454,6 @@ penguins %>%
 ],
 
 align(left+horizon)[
-
     Sama halnya dengan ukuran massa tubuh, species `Gentoo` secara umum memiliki ukuran sayap yang lebih panjang dibandingkan 2 species lainnya. Rata - rata ukuran panjang sayap species ini sebesar 217,24 mm. Sedangkan 2 species lainnya tidak menunjukkan perbedaan yang berarti dalam hal ukuran sayap.
 ]
 )

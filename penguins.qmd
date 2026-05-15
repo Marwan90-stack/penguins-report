@@ -85,6 +85,7 @@ data(penguins)
 my_font = "Open Sans"
 penguins %>% 
     filter(!is.na(sex)) %>% 
+    mutate(sex = str_to_title(sex)) %>% 
     group_by(species, island, sex) %>% 
     summarise_if(
         is.numeric,

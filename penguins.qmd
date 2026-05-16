@@ -1,10 +1,12 @@
 ---
 title: "Analisis Penguins menggunakan quarto dan typst!"
-fig-format: svg
-fig-dpi: 300
+# fig-format: svg
+# fig-dpi: 300
 crossref: 
     fig-title: "Gambar"
     tbl-title: "Tabel"
+execute: 
+  fig-format: svg
 format: 
     typst: 
         page-numbering: "1/1"
@@ -21,10 +23,7 @@ format:
             x: 2cm
             y: 1.5cm
         syntax-highlighting: github
-        
 ---
-
-
 
 ```{r}
 #| label: setup
@@ -38,6 +37,11 @@ knitr::opts_chunk$set(
     dpi = 300
 )
 data(penguins)
+
+my_font = "Open Sans"
+my_colors = c("#f9cdad", "#c8c8a9", "#83af9b")
+my_colors2 = c("#0686f0", "#28abdf", "#c3c1c1")
+my_colors3 = c("#033649", "#036564", "#cdb380")
 
 ```
 
@@ -65,24 +69,24 @@ data(penguins)
 // #set page(
 //     footer: [#title]
 // )
-
 ```
-
 # Tabel Penguins
 
 ```{=typst}
 #block[
-    Penguins dataset diperoleh dari pengamatan 3 jenis species penguins, yaitu `Adelie`, `Chinstrap`, dan `Gentoo`. Pengamatan dilakukan pada 3 pulau berbeda di daerah kutub selatan, yaitu di pulau Biscoe, Dream, dan Torgersen selama periode 2007 - 2009. Ukuran beberapa dimensi yang diamati disajikan pada @tbl-penguins:
+    Penguins dataset diperoleh dari pengamatan 3 species penguins, yaitu `Adelie`, `Chinstrap`, dan `Gentoo`. Pengamatan dilakukan pada 3 pulau berbeda di daerah kutub selatan, yaitu di pulau `Biscoe`, `Dream`, dan `Torgersen` selama periode 2007 - 2009. Ukuran beberapa dimensi yang diamati disajikan pada @tbl-penguins:
 ]
-
 ```
-
+```{=typst}
+#figure(
+    [
+```
 ```{r}
 #| echo: false
 #| label: tbl-penguins
 #| tbl-cap: "Dimensi ukuran species penguins di 3 pulau amatan"
 
-my_font = "Open Sans"
+
 penguins %>% 
     filter(!is.na(sex)) %>% 
     mutate(sex = str_to_title(sex)) %>% 
@@ -90,10 +94,16 @@ penguins %>%
     summarise_if(
         is.numeric,
         .funs = mean, 
-        na.rm = TRUE
+        na.rm = TRUE,
+        .group = "drop"
     ) %>% 
+    ungroup() %>% 
     select(-year) %>% 
     gt() %>% 
+    tab_spanner(
+        label = "Dimensi",
+        columns = c(bill_dep, bill_len, flipper_len, body_mass)
+    ) %>% 
     cols_label(
         species ~ "Species",
         island ~ "Island",
@@ -103,195 +113,112 @@ penguins %>%
         body_mass ~ 'Body Mass',
         sex ~ "Sex"
     ) %>% 
-        # cols_hide(year) %>% 
-        cols_align(
-            align = "left",
-            columns = c(is.character, is.factor)
-        ) %>% 
-        cols_align(
-                align = "right",
-                columns = is.numeric
-        ) %>% 
-        fmt_number(
-                    columns = is.numeric,
-                    decimals = 2,
-                    dec_mark = ",",
-                    sep_mark ="."
-        ) %>% 
-        sub_missing(missing_text = "---") %>% 
-        cols_width(
-            everything() ~ pct(100 / 5) #ncol(penguins %>% select(-year))
-        ) %>% 
-        data_color(
-            columns = is.numeric,
-            palette = c("#0686f0", "#28abdf", "#c3c1c1"),
-            na_color = "#fafafa"
-        ) %>% 
-        cols_move(
-            columns = sex,
-            after = island
-        ) %>% 
-        tab_style(
-            style = cell_borders(sides = c("bottom", "top"), weight = px(1.5), color = "#818181"),
-            locations = cells_column_labels()
-        ) %>% 
-        tab_style(
-            style = cell_borders(sides = "top", weight = px(1.5), color = "#818181"),
-            locations = cells_body(rows = 1)
-        ) %>% 
-        tab_style(
-            style = cell_text(weight = "bold", align = "left", v_align = "middle"),
-            locations = cells_column_labels(columns = everything())
-        ) %>% 
-        tab_style(
-            style = cell_borders(sides = "bottom", color = "#ababab", weight = px(0.25)),
-            locations = cells_body()
-        ) %>% 
-        tab_style(
-            style = cell_borders(sides = "top", weight = "0pt"),
-            locations = cells_body()
-        ) %>% 
-        tab_style(
-            style = cell_borders(sides = "bottom", color = "#ababab", weight = px(0.25)),
-            locations = cells_row_groups()
-        ) %>% 
-        tab_style(
-            style = cell_borders(sides = "top", color = "#ababab", weight = px(0)),
-            locations = cells_row_groups()
-        ) %>% 
-        tab_options(
-            table.font.names = my_font,
-            table.font.size = "10pt"
-        ) %>% 
-        tab_footnote(
-            footnote = "Ukuran dalam milimeter (mm)",
-            locations = cells_column_labels(
-                columns = c(bill_dep, bill_len, flipper_len)
-            )
-        ) %>% 
-        tab_footnote(
-            footnote = "Ukuran dalam gram (g)",
-            locations = cells_column_labels(
-                columns = body_mass
-            )
+    cols_align(
+        align = "left",
+        columns = c(is.character, is.factor)
+    ) %>% 
+    cols_align(
+        align = "right",
+        columns = is.numeric
+    ) %>% 
+    fmt_number(
+        columns = is.numeric,
+        decimals = 2,
+        dec_mark = ",",
+        sep_mark ="."
+    ) %>% 
+    fmt_number(
+        columns = body_mass,
+        decimals = 2,
+        scale_by = 1/1000,
+        dec_mark = ",",
+        sep_mark = "."
+
+    ) %>% 
+    sub_missing(missing_text = "---") %>% 
+    cols_width(
+        everything() ~ pct(100 / 7) #ncol(penguins %>% select(-year))
+    ) %>% 
+    data_color(
+        columns = is.numeric,
+        palette = my_colors3,
+        na_color = "#fafafa"
+    ) %>% 
+    cols_move(
+        columns = sex,
+        after = island
+    ) %>% 
+    cols_move(
+        columns = bill_dep,
+        after = sex
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = c("bottom", "top"), weight = px(1.5), color = "#818181"),
+        locations = cells_column_labels()
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = "top", weight = px(1.5), color = "#818181"),
+        locations = cells_column_spanners()
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = "top", weight = px(1.5), color = "#818181"),
+        locations = cells_body(rows = 1)
+    ) %>% 
+    tab_style(
+        style = cell_text(weight = "normal", align = "left", v_align = "middle"),
+        locations = cells_column_labels(columns = everything())
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = "bottom", color = "#ababab", weight = px(0.25)),
+        locations = cells_body()
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = "top", weight = "0pt"),
+        locations = cells_body()
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = "bottom", color = "#ababab", weight = px(0.25)),
+        locations = cells_row_groups()
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = "top", color = "#ababab", weight = px(0)),
+        locations = cells_row_groups()
+    ) %>% 
+    tab_style(
+        style = cell_borders(sides = c("top", "bottom"), color = "transparent", weight = px(0)),
+        locations = cells_footnotes()
+    ) %>%
+    tab_style(
+        style = cell_borders(sides = c("top", "bottom"), color = "transparent", weight = px(0)),
+        locations = cells_source_notes()
+    ) %>%
+    tab_options(
+        table.font.names = my_font,
+        table.font.size = "10pt",
+        footnotes.border.bottom.width = 0,
+        source_notes.border.bottom.width = 0,
+        table_body.border.bottom.width = 0
+    ) %>% 
+    tab_footnote(
+        footnote = "Ukuran dalam milimeter (mm)",
+        locations = cells_column_labels(
+            columns = c(bill_dep, bill_len, flipper_len)
         )
+    ) %>% 
+    tab_footnote(
+        footnote = "Ukuran dalam kilogram (kg)",
+        locations = cells_column_labels(
+            columns = body_mass
+        )
+    )
                 
                     
 ```
 
-# Massa Tubuh
-
-
 ```{=typst}
-Berikut adalah grafik perbandingan rata - rata masa tubuh jantan dan betina pada masing - masing pulau yg disajikan pada @fig-massa.
-#grid(
-    columns: (1fr, 1fr),
-    column-gutter: 10pt,
-    [
-```
-
-
-```{r}
-#| echo: false
-#| warning: false
-#| fig-width: 5
-#| fig-height: 3
-#| label: fig-massa
-#| fig-cap: Rata - rata masa tubuh penguins di 3 pulau amatan.
-#| fig-align: left
-
-penguins %>% 
-    filter(!is.na(sex)) %>% 
-    group_by(sex, island) %>% 
-    summarise(m_body_mass = mean(body_mass, na.rm = TRUE), .groups = "drop") %>% 
-    ggplot(aes(x = sex, y = m_body_mass, fill = island)) +
-    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
-    geom_text(aes(label = round(m_body_mass/1000, 2)), 
-    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
-    theme_minimal() +
-    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
-    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format(scale = 1/1000, suffix = "")) +
-    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
-    labs(
-        x = "",
-        y = "Mean Body Mass (kg)",
-        fill = ""
-    ) +
-    theme(
-        legend.position = 'top',
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.key.size = unit(10, "pt"),
-        legend.key.justification = "left",
-        legend.justification = "left",
-        text = element_text(family = my_font)
-        
-    )
-```
-
-
-```{=typst}
-],
-align(left+horizon, )[
-
-    Penguins jantan umumnya memiliki masa tubuh yang lebih besar dibandingkan betina. Pengamatan di pulau `Biscoe` menunjukkan rata - rata masa tubuh penguin jantan 5,1 kg, sedangkan masa tubuh betina 4,32 kg. Baik jantan maupun betina di pulau ini memiliki ukuran tubuh lebih besar dibandingkan species penguin yang hidup di pulau `Dream` dan `Torgersen`.
-]
-)
-
-```
-
-```{=typst}
-#grid(
-    columns: (1fr, 1fr),
-    column-gutter: 10pt,
-    [
-        Species penguins `Gentoo` memiliki massa tubuh yang lebih besar dibandingkan `Adelie` dan `Chinstrap`. Species ini juga hanya ditemukan di pulau `Biscoe`. Sementara itu, species `Adelie` dan `Chinstrap` memiliki massa tubuh yang relatif sama. Sama halnya dengan species `Gentoo` yang hanya ditemukan di pulau `Biscoe`, `Chinstrap` juga hanya ditemukan di pulau `Dream`. Sedangkan species `Adelie` ditemukan pada masing - masing pulau.
     ],
-    [
-```
-
-
-```{r}
-#| echo: false
-#| warning: false
-#| fig-width: 5
-#| fig-height: 3
-#| label: fig-species
-#| fig-cap: Rata - rata masa tubuh menurut species penguins di 3 pulau amatan.
-#| fig-align: left
-
-penguins %>% 
-    filter(!is.na(sex)) %>% 
-    group_by(species, island) %>% 
-    summarise(m_body_mass = mean(body_mass, na.rm = TRUE), .groups = "drop") %>% 
-    ggplot(aes(x = species, y = m_body_mass, fill = island)) +
-    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
-    geom_text(aes(label = round(m_body_mass/1000, 2)), 
-    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
-    theme_minimal() +
-    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
-    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format(scale = 1/1000, suffix = "")) +
-    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
-    labs(
-        x = "",
-        y = "Mean Body Mass (kg)",
-        fill = ""
-    ) +
-    theme(
-        legend.position = 'top',
-        panel.grid.minor.x = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.key.size = unit(10, "pt"),
-        legend.key.justification = "left",
-        legend.justification = "left",
-        text = element_text(family = my_font)
-    )
-
-```
-
-
-```{=typst}
-    ]
+    // caption: [Penguin table],
+    // supplement: [Tabel]
 )
 ```
 
@@ -306,8 +233,6 @@ Berikut disajikan perbandingan panjang dan kedalaman paruh pada masing - masing 
     column-gutter: 5pt,
     [
 ```
-
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -327,7 +252,7 @@ penguins %>%
     geom_text(aes(label = round(m_bill_len, 2)), 
     color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
     theme_minimal() +
-    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_fill_manual(values = my_colors3) +
     scale_y_continuous(expand = c(0, Inf), labels = scales::number_format()) +
     scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
     labs(
@@ -346,14 +271,10 @@ penguins %>%
     )
 ```
 
-
 ```{=typst}
     ],
     [
-
 ```
-
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -372,7 +293,7 @@ penguins %>%
     geom_text(aes(label = round(m_bill_dep, 2)), 
     color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
     theme_minimal() +
-    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_fill_manual(values = my_colors3) +
     scale_y_continuous(expand = c(0, Inf), labels = scales::number_format()) +
     scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
     labs(
@@ -400,9 +321,7 @@ penguins %>%
 Meskipun memiliki bobot tubuh yang relatif lebih kecil, species `Chinstrap` memiliki ukuran dimensi paruh yang lebih besar dibandingkan 2 species lainnya. Panjang paruh species ini rata - rata berukuran 48,83 mm dengan kedalaman 18,42mm. Dari sisi panjang paruh, species `Gentoo` mendekati ukuran species `Chinstrap`, namun dari sisi kedalaman `Gentoo` justru yang sangat kecil sedangkan species `Adelie` mendekati ukuran paruh `Chinstrap`.
 ]
 ```
-
 # Ukuran Sayap
-
 
 ```{=typst}
 #grid(
@@ -410,9 +329,7 @@ Meskipun memiliki bobot tubuh yang relatif lebih kecil, species `Chinstrap` memi
     column-gutter: 10pt,
     [
 
-
 ```
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -431,7 +348,7 @@ penguins %>%
     geom_text(aes(label = round(m_flipper_len, 2)), 
     color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
     theme_minimal() +
-    scale_fill_manual(values = c("#0686f0", "#28abdf", "#c3c1c1")) +
+    scale_fill_manual(values = my_colors3) +
     scale_y_continuous(expand = c(0, Inf), labels = scales::number_format()) +
     scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
     labs(
@@ -450,13 +367,119 @@ penguins %>%
     )
 ```
 
-
 ```{=typst}
 ],
 
 align(left+horizon)[
     Sama halnya dengan ukuran massa tubuh, species `Gentoo` secara umum memiliki ukuran sayap yang lebih panjang dibandingkan 2 species lainnya. Rata - rata ukuran panjang sayap species ini sebesar 217,24 mm. Sedangkan 2 species lainnya tidak menunjukkan perbedaan yang berarti dalam hal ukuran sayap.
 ]
+)
+```
+
+# Massa Tubuh
+
+```{=typst}
+Berikut adalah grafik perbandingan rata - rata masa tubuh jantan dan betina pada masing - masing pulau yg disajikan pada @fig-massa.
+#grid(
+    columns: (1fr, 1fr),
+    column-gutter: 10pt,
+    [
+```
+```{r}
+#| echo: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 3
+#| label: fig-massa
+#| fig-cap: Rata - rata masa tubuh penguins di 3 pulau amatan.
+#| fig-align: left
+
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(sex, island) %>% 
+    summarise(m_body_mass = mean(body_mass, na.rm = TRUE), .groups = "drop") %>% 
+    ggplot(aes(x = sex, y = m_body_mass, fill = island)) +
+    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
+    geom_text(aes(label = round(m_body_mass/1000, 2)), 
+    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
+    theme_minimal() +
+    scale_fill_manual(values = my_colors3) +
+    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format(scale = 1/1000, suffix = "")) +
+    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
+    labs(
+        x = "",
+        y = "Mean Body Mass (kg)",
+        fill = ""
+    ) +
+    theme(
+        legend.position = 'top',
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.key.size = unit(10, "pt"),
+        legend.key.justification = "left",
+        legend.justification = "left",
+        text = element_text(family = my_font)
+        
+    )
+```
+
+```{=typst}
+],
+align(left+horizon, )[
+
+    Penguins jantan umumnya memiliki masa tubuh yang lebih besar dibandingkan betina. Pengamatan di pulau `Biscoe` menunjukkan rata - rata masa tubuh penguin jantan 5,1 kg, sedangkan masa tubuh betina 4,32 kg. Baik jantan maupun betina di pulau ini memiliki ukuran tubuh lebih besar dibandingkan species penguin yang hidup di pulau `Dream` dan `Torgersen`.
+]
+)
+```
+```{=typst}
+#grid(
+    columns: (1fr, 1fr),
+    column-gutter: 10pt,
+    [
+        Species penguins `Gentoo` memiliki massa tubuh yang lebih besar dibandingkan `Adelie` dan `Chinstrap`. Species ini juga hanya ditemukan di pulau `Biscoe`. Sementara itu, species `Adelie` dan `Chinstrap` memiliki massa tubuh yang relatif sama. Sama halnya dengan species `Gentoo` yang hanya ditemukan di pulau `Biscoe`, `Chinstrap` juga hanya ditemukan di pulau `Dream`. Sedangkan species `Adelie` ditemukan pada masing - masing pulau.
+    ],
+    [
+```
+```{r}
+#| echo: false
+#| warning: false
+#| fig-width: 5
+#| fig-height: 3
+#| label: fig-species
+#| fig-cap: Rata - rata masa tubuh menurut species penguins di 3 pulau amatan.
+#| fig-align: left
+
+penguins %>% 
+    filter(!is.na(sex)) %>% 
+    group_by(species, island) %>% 
+    summarise(m_body_mass = mean(body_mass, na.rm = TRUE), .groups = "drop") %>% 
+    ggplot(aes(x = species, y = m_body_mass, fill = island)) +
+    geom_bar(stat = "identity", position = "dodge", width = 0.90) +
+    geom_text(aes(label = round(m_body_mass/1000, 2)), 
+    color = "white", hjust = 0.5, vjust = 1.5, position = position_dodge(width = 0.90)) +
+    theme_minimal() +
+    scale_fill_manual(values = my_colors3) +
+    scale_y_continuous(expand = c(0, Inf), labels = scales::number_format(scale = 1/1000, suffix = "")) +
+    scale_x_discrete(labels = function(x) str_to_title(x), expand = c(0,0)) +
+    labs(
+        x = "",
+        y = "Mean Body Mass (kg)",
+        fill = ""
+    ) +
+    theme(
+        legend.position = 'top',
+        panel.grid.minor.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.key.size = unit(10, "pt"),
+        legend.key.justification = "left",
+        legend.justification = "left",
+        text = element_text(family = my_font)
+    )
+
+```
+
+```{=typst}
+    ]
 )
 ```
 
